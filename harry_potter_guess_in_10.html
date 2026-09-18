@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harry Potter: Guess in 10 - Wizarding World Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700;900&family=Pinyon+Script&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        decorative: ['"Cinzel Decorative"', 'serif'],
+                        script: ['"Pinyon Script"', 'cursive'],
+                        medieval: ['MedievalSharp', 'cursive']
+                    },
+                    colors: {
+                        hpdark: '#0a0915',
+                        hpcard: '#161427',
+                        parchment: '#f4ebd0',
+                        parchmentDark: '#e3d4b2',
+                        gryffindor: '#740001',
+                        gryffindorGold: '#d3a625',
+                        slytherin: '#1a472a',
+                        slytherinSilver: '#aaaaaa',
+                        ravenclaw: '#0e1a40',
+                        ravenclawBronze: '#946b2d',
+                        hufflepuff: '#ecb939',
+                        hufflepuffBlack: '#372e29',
+                        gold: '#ffd700'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at center, #1b1b3a 0%, #0a0915 100%);
+            color: #f4ebd0;
+            font-family: 'Cinzel', serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .parchment-bg {
+            background: linear-gradient(135deg, #f7eed6 0%, #ebd8b3 50%, #dfcb9f 100%);
+            color: #2c221e;
+            box-shadow: inset 0 0 40px rgba(111, 78, 55, 0.3), 0 10px 30px rgba(0,0,0,0.8);
+            border: 3px solid #b39258;
+        }
+
+        .magical-glow {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+        }
+        .animate-float {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+        }
+        .pulse-gold {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0915;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b39258;
+            border-radius: 4px;
+        }
+
+        .wand-cursor {
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 21l18-18'></path><path d='M14 8l2 2'></path><circle cx='5' cy='19' r='2' fill='%23ffd700'></circle></svg>"), auto;
+        }
+
+        .sparkle {
+            position: absolute;
+            background: radial-gradient(circle, #fff 0%, rgba(255,215,0,0.8) 50%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkleAnim 1.5s linear forwards;
+        }
+        @keyframes sparkleAnim {
+            0% { transform: scale(0) translateY(0); opacity: 1; }
+            100% { transform: scale(1.5) translateY(-50px); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="wand-cursor flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-black">
+
+    <div id="stars-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="relative z-10 w-full border-b border-amber-600/40 bg-hpdark/80 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between shadow-2xl">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center shadow-lg border border-amber-200">
+                <i class="fa-solid fa-hat-wizard text-hpdark text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-decorative text-xl md:text-2xl text-amber-300 tracking-wider magical-glow">HOGWARTS: GUESS IN 10</h1>
+                <p class="text-xs text-amber-200/70 font-cinzel">Master the Wizarding World Characters</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4 mt-2 sm:mt-0">
+            <!-- House Crest / Points Tracker -->
+            <div id="house-display" class="flex items-center space-x-2 bg-hpcard/90 border border-amber-500/50 px-3 py-1.5 rounded-xl shadow-inner">
+                <span id="house-badge-icon" class="text-amber-400 text-lg"><i class="fa-solid fa-shield-cat"></i></span>
+                <div class="text-xs">
+                    <div id="active-house-name" class="font-bold text-amber-200">Gryffindor</div>
+                    <div class="text-amber-400/80"><span id="house-points-val">50</span> House Points</div>
+                </div>
+            </div>
+
+            <!-- Sound & Stats -->
+            <button onclick="toggleAudio()" id="sound-btn" class="w-10 h-10 rounded-xl bg-hpcard border border-amber-500/40 flex items-center justify-center text-amber-300 hover:bg-amber-500/20 transition shadow" title="Toggle Magical Ambiance">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg" id="sound-icon"></i>
+            </button>
+            <button onclick="openAchievementsModal()" class="w-10 h-10 rounded-xl bg-hpcard border border-amber-500/40 flex items-center justify-center text-amber-300 hover:bg-amber-500/20 transition shadow" title="Wizarding Achievements">
+                <i class="fa-solid fa-award text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GAME CONTAINER -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 relative z-10 flex flex-col items-center justify-center">
+
+        <div id="screen-menu" class="w-full max-w-2xl parchment-bg rounded-2xl p-6 md:p-10 shadow-2xl relative animate-float">
+            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-hpdark border-2 border-amber-400 text-amber-300 px-6 py-2 rounded-full font-decorative text-sm md:text-base shadow-lg tracking-widest">
+                THE SORTING & SELECTION
+            </div>
+
+            <div class="text-center mt-4 mb-6">
+                <h2 class="font-decorative text-3xl md:text-4xl text-amber-900 mb-2">Welcome, Young Wizard</h2>
+                <p class="font-cinzel text-sm md:text-base text-amber-950/80">
+                    Prove your knowledge of the magical realm! Deduce the secret Harry Potter character within 10 progressive clues. Choose your house, earn house points, and unlock legendary spells.
+                </p>
+            </div>
+
+            <div class="space-y-6 my-6">
+                <div>
+                    <label class="block font-bold text-amber-950 mb-2 text-sm uppercase tracking-wide">Choose Your Hogwarts House</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button onclick="selectHouse('Gryffindor', 'fa-shield-cat', '#740001', '#d3a625')" class="house-opt-btn p-3 rounded-xl border-2 border-amber-900/30 bg-[#740001]/10 hover:bg-[#740001]/20 flex flex-col items-center transition group active-house" data-house="Gryffindor">
+                            <i class="fa-solid fa-lion text-2xl text-[#740001] mb-1 group-hover:scale-110 transition"></i>
+                            <span class="font-bold text-xs text-amber-950">Gryffindor</span>
+                        </button>
+                        <button onclick="selectHouse('Slytherin', 'fa-shield-halved', '#1a472a', '#aaaaaa')" class="house-opt-btn p-3 rounded-xl border-2 border-amber-900/30 bg-[#1a472a]/10 hover:bg-[#1a472a]/20 flex flex-col items-center transition group" data-house="Slytherin">
+                            <i class="fa-solid fa-dragon text-2xl text-[#1a472a] mb-1 group-hover:scale-110 transition"></i>
+                            <span class="font-bold text-xs text-amber-950">Slytherin</span>
+                        </button>
+                        <button onclick="selectHouse('Ravenclaw', 'fa-feather', '#0e1a40', '#946b2d')" class="house-opt-btn p-3 rounded-xl border-2 border-amber-900/30 bg-[#0e1a40]/10 hover:bg-[#0e1a40]/20 flex flex-col items-center transition group" data-house="Ravenclaw">
+                            <i class="fa-solid fa-crow text-2xl text-[#0e1a40] mb-1 group-hover:scale-110 transition"></i>
+                            <span class="font-bold text-xs text-amber-950">Ravenclaw</span>
+                        </button>
+                        <button onclick="selectHouse('Hufflepuff', 'fa-shield', '#ecb939', '#372e29')" class="house-opt-btn p-3 rounded-xl border-2 border-amber-900/30 bg-[#ecb939]/10 hover:bg-[#ecb939]/20 flex flex-col items-center transition group" data-house="Hufflepuff">
+                            <i class="fa-solid fa-badger text-2xl text-[#8d6b00] mb-1 group-hover:scale-110 transition"></i>
+                            <span class="font-bold text-xs text-amber-950">Hufflepuff</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-amber-950 mb-2 text-sm uppercase tracking-wide">Select Difficulty / Mode</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setDifficulty('standard')" id="diff-standard" class="p-3 rounded-xl border-2 border-amber-700 bg-amber-500/20 text-amber-950 font-bold text-sm transition">
+                            <i class="fa-solid fa-wand-sparkles mr-2"></i> Standard (All Characters)
+                        </button>
+                        <button onclick="setDifficulty('legendary')" id="diff-legendary" class="p-3 rounded-xl border-2 border-amber-900/30 bg-amber-900/10 text-amber-950 font-bold text-sm transition">
+                            <i class="fa-solid fa-bolt-lightning mr-2"></i> Legendary (Harder Clues)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center pt-2">
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-500 text-amber-100 font-decorative text-lg md:text-xl rounded-xl shadow-xl border-2 border-amber-300 transform hover:scale-[1.01] transition duration-300 flex items-center justify-center space-x-3">
+                    <i class="fa-solid fa-hat-wizard"></i>
+                    <span>BEGIN THE CHALLENGE</span>
+                    <i class="fa-solid fa-sparkles"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="screen-game" class="hidden w-full max-w-4xl flex flex-col space-y-6">
+            
+            <!-- Game Top Status Bar -->
+            <div class="parchment-bg rounded-2xl p-4 md:p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-900/20 border-2 border-amber-700 flex flex-col items-center justify-center text-amber-950 shadow-inner">
+                        <span class="text-xs uppercase font-bold tracking-wider">Clues</span>
+                        <span id="clue-counter" class="font-decorative text-xl font-bold">1 / 10</span>
+                    </div>
+                    <div>
+                        <div class="text-xs text-amber-950/70 uppercase tracking-widest font-bold">Secret Character Category</div>
+                        <div id="target-category" class="font-decorative text-lg text-amber-900 font-bold">Hogwarts Staff / Gryffindor</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <div class="text-right">
+                        <div class="text-xs text-amber-950/70 uppercase tracking-widest font-bold">Guesses Left</div>
+                        <div class="flex space-x-1 mt-1" id="guesses-dots">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                    <button onclick="quitToMenu()" class="px-3 py-2 bg-amber-900/20 hover:bg-amber-900/30 text-amber-950 rounded-xl text-xs font-bold border border-amber-800/30 transition" title="Abandon Game">
+                        <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Menu
+                    </button>
+                </div>
+            </div>
+
+            <!-- Clue Scroll / Card Area -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Left 2 Cols: Progressive Clues -->
+                <div class="md:col-span-2 parchment-bg rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden min-h-[320px]">
+                    <div class="absolute top-2 right-4 text-amber-800/20 text-6xl font-decorative pointer-events-none">
+                        <i class="fa-solid fa-scroll"></i>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-4 border-b border-amber-900/20 pb-2">
+                            <span class="font-decorative text-xs tracking-widest uppercase text-amber-900 font-bold flex items-center">
+                                <i class="fa-solid fa-feather-pointed mr-2 text-amber-700"></i> Magical Clue #<span id="current-clue-num">1</span>
+                            </span>
+                            <span id="clue-category-badge" class="px-3 py-1 bg-amber-900/10 border border-amber-800/30 rounded-full text-xs font-bold text-amber-950">
+                                House & Origin
+                            </span>
+                        </div>
+
+                        <div id="clue-text-container" class="my-6 min-h-[100px] flex items-center justify-center text-center">
+                            <p id="clue-text" class="font-cinzel text-lg md:text-xl text-amber-950 font-bold leading-relaxed">
+                                Loading magical manuscript...
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-amber-900/20">
+                        <button onclick="prevClue()" id="btn-prev-clue" class="px-4 py-2 bg-amber-900/10 hover:bg-amber-900/20 text-amber-950 rounded-xl text-xs font-bold border border-amber-800/30 transition disabled:opacity-40" disabled>
+                            <i class="fa-solid fa-chevron-left mr-1"></i> Previous Clue
+                        </button>
+                        <span class="text-xs text-amber-950/70 font-cinzel">Reveal up to 10 clues</span>
+                        <button onclick="nextClue()" id="btn-next-clue" class="px-4 py-2 bg-amber-900 text-amber-100 hover:bg-amber-800 rounded-xl text-xs font-bold transition shadow">
+                            Next Clue <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right 1 Col: Quick Stats & Wizardry Help -->
+                <div class="parchment-bg rounded-2xl p-6 shadow-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-decorative text-base text-amber-900 font-bold mb-3 border-b border-amber-900/20 pb-2">
+                            <i class="fa-solid fa-wand-sparkles mr-2 text-amber-700"></i> Wizarding Aid
+                        </h3>
+                        <ul class="space-y-3 text-xs text-amber-950 font-cinzel">
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-check text-amber-700 mr-2 mt-0.5"></i>
+                                <span>Each incorrect guess costs 1 Guesses Point.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-check text-amber-700 mr-2 mt-0.5"></i>
+                                <span>Use fewer clues to earn bonus House Points!</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa-solid fa-check text-amber-700 mr-2 mt-0.5"></i>
+                                <span>Type any character name or select from suggestions.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-amber-900/20 text-center">
+                        <button onclick="openAskDumbledore()" class="w-full py-3 bg-amber-900/15 hover:bg-amber-900/25 border-2 border-amber-800/40 text-amber-950 font-decorative text-xs rounded-xl transition shadow flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-hat-wizard text-amber-800"></i>
+                            <span>CONSULT DUMBLEDORE (HINT)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guess Input / Selection Area -->
+            <div class="parchment-bg rounded-2xl p-6 shadow-2xl relative">
+                <div class="flex flex-col md:flex-row gap-3 items-center">
+                    <div class="relative flex-1 w-full">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-amber-800">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="character-input" oninput="filterCharacterSuggestions(this.value)" onkeydown="handleInputKey(event)" placeholder="Type character name (e.g. Harry Potter, Severus Snape)..." class="w-full pl-11 pr-4 py-3.5 bg-amber-100/80 border-2 border-amber-800/40 rounded-xl font-cinzel font-bold text-amber-950 placeholder-amber-900/40 focus:outline-none focus:border-amber-700 shadow-inner">
+                        
+                        <!-- Autocomplete dropdown -->
+                        <div id="suggestions-box" class="absolute left-0 right-0 top-full mt-1 bg-[#f7eed6] border-2 border-amber-800/50 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 hidden">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <button onclick="submitGuess()" class="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 font-decorative text-base rounded-xl shadow-lg border-2 border-amber-300 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>CAST GUESS</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-result" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-hpdark/80 backdrop-blur-md p-4">
+            <div class="parchment-bg rounded-3xl p-6 md:p-10 max-w-lg w-full shadow-2xl text-center relative border-4 border-amber-500 animate-float">
+                <div id="result-icon-container" class="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-600 mx-auto flex items-center justify-center text-amber-800 text-3xl mb-4 shadow-lg">
+                    <i id="result-icon" class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+
+                <h2 id="result-title" class="font-decorative text-3xl md:text-4xl text-amber-900 mb-2">SPELL SUCCESS!</h2>
+                <p id="result-subtitle" class="font-cinzel text-sm md:text-base text-amber-950/80 mb-6">
+                    You correctly identified the secret character!
+                </p>
+
+                <div class="bg-amber-900/10 border-2 border-amber-800/30 rounded-2xl p-4 mb-6 text-left">
+                    <div class="flex items-center space-x-4">
+                        <div id="result-char-avatar" class="w-16 h-16 rounded-xl bg-amber-800/20 flex items-center justify-center text-2xl text-amber-900 border border-amber-700/40">
+                            <i class="fa-solid fa-user-wizard"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs uppercase font-bold text-amber-950/70">The Secret Character Was</div>
+                            <div id="result-char-name" class="font-decorative text-xl text-amber-900 font-bold">Harry Potter</div>
+                            <div id="result-char-details" class="text-xs font-cinzel text-amber-950 mt-1">Gryffindor • Half-Blood • Patronus: Stag</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-amber-900/10 p-3 rounded-xl border border-amber-800/20">
+                        <div class="text-xs uppercase text-amber-950/70 font-bold">House Points Earned</div>
+                        <div id="result-points-val" class="font-decorative text-xl text-amber-900 font-bold">+25 PTS</div>
+                    </div>
+                    <div class="bg-amber-900/10 p-3 rounded-xl border border-amber-800/20">
+                        <div class="text-xs uppercase text-amber-950/70 font-bold">Clues Used</div>
+                        <div id="result-clues-val" class="font-decorative text-xl text-amber-900 font-bold">3 / 10</div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button onclick="nextRound()" class="flex-1 py-3.5 bg-amber-700 hover:bg-amber-600 text-amber-100 font-decorative text-sm rounded-xl shadow-lg border-2 border-amber-300 transition">
+                        <i class="fa-solid fa-arrow-right mr-1"></i> NEXT WIZARD
+                    </button>
+                    <button onclick="quitToMenu()" class="px-5 py-3.5 bg-amber-900/20 hover:bg-amber-900/30 text-amber-950 font-decorative text-sm rounded-xl border border-amber-800/40 transition">
+                        MENU
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACHIEVEMENTS MODAL -->
+        <div id="modal-achievements" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-hpdark/80 backdrop-blur-md p-4">
+            <div class="parchment-bg rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl relative border-4 border-amber-500">
+                <div class="flex items-center justify-between mb-4 border-b border-amber-900/30 pb-3">
+                    <h3 class="font-decorative text-2xl text-amber-900 flex items-center">
+                        <i class="fa-solid fa-award mr-2 text-amber-700"></i> Wizarding Honors
+                    </h3>
+                    <button onclick="closeAchievementsModal()" class="w-8 h-8 rounded-full bg-amber-900/20 hover:bg-amber-900/30 text-amber-950 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="achievements-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- DUMBLEDORE HINT MODAL -->
+        <div id="modal-dumbledore" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-hpdark/80 backdrop-blur-md p-4">
+            <div class="parchment-bg rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative border-4 border-amber-500 text-center">
+                <div class="w-16 h-16 rounded-full bg-amber-900/20 border-2 border-amber-700 mx-auto flex items-center justify-center text-amber-900 text-2xl mb-3 shadow">
+                    <i class="fa-solid fa-hat-wizard"></i>
+                </div>
+                <h3 class="font-decorative text-xl text-amber-900 mb-2">Headmaster's Wisdom</h3>
+                <p id="dumbledore-quote" class="font-cinzel italic text-sm text-amber-950 mb-6 leading-relaxed">
+                    "Happiness can be found in the darkest of times, if one only remembers to turn on the light."
+                </p>
+                <button onclick="closeAskDumbledore()" class="px-6 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-100 font-decorative text-xs rounded-xl shadow transition">
+                    RETURN TO CHALLENGE
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 w-full text-center py-4 border-t border-amber-600/30 bg-hpdark/80 text-amber-200/60 font-cinzel text-xs">
+        <p>PotterVerse 'Guess in 10' • Created for Wizarding World Enthusiasts & Fans of J.K. Rowling</p>
+    </footer>
+
+    <script>
+        // Character Database (30+ characters with 10 clues each)
+        const charactersDatabase = [
+            {
+                name: "Harry Potter",
+                category: "Famous Gryffindor / The Chosen One",
+                details: "Gryffindor • Half-Blood • Patronus: Stag",
+                clues: [
+                    "I am sorted into Gryffindor House, known for courage and chivalry.",
+                    "I bear a distinctive lightning-bolt scar upon my forehead.",
+                    "I am the youngest Seeker in a century for the Gryffindor Quidditch team.",
+                    "I possess an Invisibility Cloak that once belonged to my father.",
+                    "My wand is 11 inches long, made of holly with a phoenix feather core.",
+                    "My pet snowy owl is named Hedwig.",
+                    "My Patronus takes the magnificent form of a stag.",
+                    "I survived the Killing Curse twice in my lifetime.",
+                    "I am the master of the legendary Elder Wand.",
+                    "I defeated Lord Voldemort once and for all in the Battle of Hogwarts."
+                ]
+            },
+            {
+                name: "Hermione Granger",
+                category: "Brightest Witch of Her Age",
+                details: "Gryffindor • Muggle-Born • Patronus: Otter",
+                clues: [
+                    "I am famously sorted into Gryffindor, despite almost being placed in Ravenclaw.",
+                    "I am recognized as the brightest witch of my age at Hogwarts.",
+                    "I carry a magical Time-Turner during my third year to attend extra classes.",
+                    "My parents are both Muggles and work as dentists.",
+                    "My wand is made of vine wood with a dragon heartstring core.",
+                    "My loyal pet is a ginger cat named Crookshanks.",
+                    "My Patronus takes the playful form of an otter.",
+                    "I co-founded Dumbledore's Army and fought valiantly in the Department of Mysteries.",
+                    "I punched Draco Malfoy in the face during our third year.",
+                    "I eventually grew up to become the Minister for Magic."
+                ]
+            },
+            {
+                name: "Ron Weasley",
+                category: "Loyal Best Friend & Strategist",
+                details: "Gryffindor • Pure-Blood • Patronus: Jack Russell Terrier",
+                clues: [
+                    "I come from a large, impoverished, but fiercely loyal pure-blood wizarding family.",
+                    "I am best friends with Harry Potter and Hermione Granger.",
+                    "I am exceptionally talented at Wizard's Chess, proving decisive in guarding the Philosopher's Stone.",
+                    "My family's magical home is affectionately known as The Burrow.",
+                    "I owned a rather ancient and lazy pet rat named Scabbers for many years.",
+                    "My wand contains a unicorn hair core embedded in willow wood.",
+                    "My Patronus takes the energetic form of a Jack Russell Terrier.",
+                    "I destroyed Salazar Slytherin's locket Horcrux using the Sword of Gryffindor.",
+                    "I briefly suffered from arachnophobia due to childhood trauma involving my brother Fred.",
+                    "I married Hermione Granger and had two children, Rose and Hugo."
+                ]
+            },
+            {
+                name: "Severus Snape",
+                category: "Potions Master & Double Agent",
+                details: "Slytherin • Half-Blood • Patronus: Doe",
+                clues: [
+                    "I served as the Potions Master and later Defense Against the Dark Arts professor at Hogwarts.",
+                    "I was the Head of Slytherin House for many years.",
+                    "My schoolyard nickname given by my Marauder tormentors was the Half-Blood Prince.",
+                    "My Patronus is a doe, matching the lifelong love of my heart.",
+                    "My wand is uniquely potent in dark arts and potion-crafting.",
+                    "I killed Albus Dumbledore atop the Astronomy Tower as part of an unbreakable vow and plan.",
+                    "I acted as a double agent spying on Voldemort for Albus Dumbledore.",
+                    "My deepest, most enduring motivation was my unfailing love for Lily Potter.",
+                    "My final words to Harry were 'Look at me... you have your mother's eyes.'",
+                    "I was ultimately proven to be one of the bravest men Harry ever knew."
+                ]
+            },
+            {
+                name: "Albus Dumbledore",
+                category: "Legendary Headmaster of Hogwarts",
+                details: "Gryffindor • Half-Blood • Patronus: Phoenix",
+                clues: [
+                    "I served as the esteemed Headmaster of Hogwarts School of Witchcraft and Wizardry.",
+                    "I defeated the dark wizard Gellert Grindelwald in their legendary 1945 duel.",
+                    "I possess a long silver beard and half-moon spectacles.",
+                    "My personal familiar is a magnificent and loyal phoenix named Fawkes.",
+                    "I am one of the original owners of the Deathly Hallows, possessing the Elder Wand.",
+                    "My left knee bears a scar that is a precise map of the London Underground.",
+                    "I have a fondness for lemon drops and sherbet lemons.",
+                    "My Patronus takes the form of a majestic phoenix.",
+                    "I founded the Order of the Phoenix to resist Lord Voldemort.",
+                    "My past contained youthful ambitions with Grindelwald before tragedy struck my sister Ariana."
+                ]
+            },
+            {
+                name: "Sirius Black",
+                category: "The Marauder & Godfather",
+                details: "Gryffindor • Pure-Blood • Patronus: Large Black Dog",
+                clues: [
+                    "I was sorted into Gryffindor, rebelling against my dark pure-blood family traditions.",
+                    "I am best friends with James Potter, Remus Lupin, and Peter Pettigrew (The Marauders).",
+                    "I can transform at will into a large black dog, earning the Animagus name Padfoot.",
+                    "I was falsely imprisoned in Azkaban for 12 years before escaping.",
+                    "I am Harry Potter's beloved godfather.",
+                    "My ancestral home is located at 12, Grimmauld Place in London.",
+                    "I gave Harry his first broomstick, a Nimbus Two Thousand, when he was a baby.",
+                    "I was killed by my cousin Bellatrix Lestrange in the Department of Mysteries.",
+                    "I left my motorcycle to Hagrid the night Harry was left with the Dursleys.",
+                    "My spirit briefly returned to guide Harry using the Resurrection Stone."
+                ]
+            },
+            {
+                name: "Draco Malfoy",
+                category: "Slytherin Rival & Heir",
+                details: "Slytherin • Pure-Blood • Patronus: None",
+                clues: [
+                    "I am a proud pure-blood wizard sorted into Slytherin House.",
+                    "I served as Harry Potter's primary rival throughout our years at Hogwarts.",
+                    "My father is Lucius Malfoy, a high-ranking Death Eater.",
+                    "Our grand family estate is known as Malfoy Manor in Wiltshire.",
+                    "I became a Death Eater tasked with repairing the Vanishing Cabinet to infiltrate Hogwarts.",
+                    "My wand is 10 inches long, made of hawthorn with a unicorn hair core.",
+                    "I reluctantly disarmed Albus Dumbledore, unwittingly becoming master of the Elder Wand.",
+                    "My mother is Narcissa Malfoy, whose love ultimately saved Harry in the Forbidden Forest.",
+                    "I grew up believing in pure-blood supremacy before facing the harsh realities of war.",
+                    "I married Astoria Greengrass and had a son named Scorpius."
+                ]
+            },
+            {
+                name: "Rubeus Hagrid",
+                category: "Keeper of Keys & Grounds",
+                details: "Gryffindor • Half-Giant • Patronus: Unknown",
+                clues: [
+                    "I am the Keeper of Keys and Grounds at Hogwarts, as well as Care of Magical Creatures professor.",
+                    "I am a half-giant, standing nearly eleven and a half feet tall.",
+                    "I was wrongfully expelled from Hogwarts during my third year due to Tom Riddle framing me.",
+                    "I carried baby Harry Potter out of the ruins of Godric's Hollow on a flying motorcycle.",
+                    "I keep my broken wand fragments concealed inside a pink umbrella.",
+                    "I have a notorious fondness for extremely dangerous creatures like Acromantulas and Dragons.",
+                    "My beloved half-brother is a giant named Grawp living in the Forbidden Forest.",
+                    "I hatched a Norwegian Ridgeback dragon named Norbert in my wooden hut.",
+                    "My loyal boarhound companion is named Fang.",
+                    "I gave Harry his very first birthday cake when he turned eleven."
+                ]
+            },
+            {
+                name: "Luna Lovegood",
+                category: "Quirky Ravenclaw Seer",
+                details: "Ravenclaw • Pure-Blood • Patronus: Hare",
+                clues: [
+                    "I am sorted into Ravenclaw House and known for my eccentric, dreamy demeanor.",
+                    "My schoolmates often teasingly refer to me as 'Loony Lovegood'.",
+                    "My father Xenophilius Lovegood publishes 'The Quibbler' magazine.",
+                    "I can see mysterious creatures known as Thestrals because I witnessed my mother's death.",
+                    "I wear Spectrespecs to see invisible wrackspurts.",
+                    "I painted portraits of my friends Harry, Ron, Hermione, Ginny, and Neville on my bedroom ceiling.",
+                    "My Patronus takes the graceful form of a hare.",
+                    "I was captured and imprisoned in Malfoy Manor's dungeons before being rescued by Dobby.",
+                    "I helped Harry discover Ravenclaw's lost diadem in the Room of Requirement.",
+                    "I grew up to become a famous wizarding naturalist discovering magical beasts."
+                ]
+            },
+            {
+                name: "Neville Longbottom",
+                category: "Herbology Expert & Brave Protector",
+                details: "Gryffindor • Pure-Blood • Patronus: Non-Corporeal",
+                clues: [
+                    "I was sorted into Gryffindor, though the Sorting Hat strongly considered Hufflepuff.",
+                    "My parents, Frank and Alice Longbottom, were famed Aurors tortured into insanity by Bellatrix Lestrange.",
+                    "I was raised by my stern and formidable grandmother, Augusta Longbottom.",
+                    "I have an extreme lack of coordination initially, frequently losing my Remembrall.",
+                    "My greatest academic passion and gift lies in the study of Herbology.",
+                    "I pulled the legendary Sword of Gryffindor from the Sorting Hat during the Battle of Hogwarts.",
+                    "I bravely destroyed Voldemort's final Horcrux, the snake Nagini, with the sword.",
+                    "I joined Dumbledore's Army and fought valiantly in the Department of Mysteries.",
+                    "My pet toad is named Trevor, whom I frequently lose.",
+                    "I eventually returned to Hogwarts as the Herbology professor."
+                ]
+            },
+            {
+                name: "Bellatrix Lestrange",
+                category: "Fanatical Death Eater",
+                details: "Slytherin • Pure-Blood • Patronus: None",
+                clues: [
+                    "I am a fanatical and unhinged Death Eater utterly devoted to Lord Voldemort.",
+                    "I belong to the ancient and noble House of Black before marrying Rodolphus Lestrange.",
+                    "I tortured Frank and Alice Longbottom with the Cruciatus Curse.",
+                    "I murdered my cousin Sirius Black by sending him through the veil in the Department of Mysteries.",
+                    "I killed the brave elf Dobby by throwing a silver dagger at him.",
+                    "My wand is 12¾ inches long, made of walnut with a dragon heartstring core.",
+                    "I served as a sadistic guard at Azkaban prison before escaping in mass breakouts.",
+                    "I kept a replica of Gryffindor's sword safely secured in my high-security vault at Gringotts.",
+                    "I was ultimately killed in a duel by Molly Weasley during the Battle of Hogwarts.",
+                    "I carved the word 'Mudblood' into Hermione Granger's arm at Malfoy Manor."
+                ]
+            },
+            {
+                name: "Remus Lupin",
+                category: "Marauder & Werewolf Professor",
+                details: "Gryffindor • Half-Blood • Patronus: Wolf",
+                clues: [
+                    "I was sorted into Gryffindor and served as one of the creators of the Marauder's Map.",
+                    "I was bitten by the werewolf Fenrir Greyback when I was a young child.",
+                    "I served as the Defense Against the Dark Arts professor during Harry's third year.",
+                    "I taught Harry how to cast the Patronus Charm using a Boggart.",
+                    "My Marauder nickname is Moony.",
+                    "I married Nymphadora Tonks and had a son named Teddy Lupin.",
+                    "My Patronus takes the form of a wolf, reflecting my hidden affliction.",
+                    "I drank Wolfsbane Potion brewed by Severus Snape to keep my mind during full moons.",
+                    "I fought valiantly in the Order of the Phoenix and died alongside my wife at Hogwarts.",
+                    "Harry used the Resurrection Stone to speak with me before facing Voldemort."
+                ]
+            }
+        ];
+
+        // Game State
+        let currentHouse = "Gryffindor";
+        let housePoints = 50;
+        let difficulty = "standard";
+        let activeCharacter = null;
+        let currentClueIndex = 0;
+        let guessesRemaining = 3;
+        let gameActive = false;
+        let unlockedAchievements = [];
+        let gamesWonCount = 0;
+
+        // Sound ambiance toggle (Web Audio API synth or mute)
+        let audioEnabled = false;
+        let audioCtx = null;
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (audioEnabled) {
+                icon.className = "fa-solid fa-volume-high text-lg text-amber-300";
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                playMagicalChime();
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-lg text-amber-400/50";
+            }
+        }
+
+        function playMagicalChime() {
+            if (!audioEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.3); // C6
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch(e) {}
+        }
+
+        // Initialize background floating sparkles
+        function initStars() {
+            const container = document.getElementById('stars-container');
+            for (let i = 0; i < 30; i++) {
+                const star = document.createElement('div');
+                star.className = 'absolute bg-amber-300 rounded-full opacity-30 animate-pulse';
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                container.appendChild(star);
+            }
+        }
+
+        function selectHouse(houseName, iconClass, colorPrimary, colorAccent) {
+            currentHouse = houseName;
+            document.getElementById('active-house-name').textContent = houseName;
+            document.getElementById('house-badge-icon').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            
+            document.querySelectorAll('.house-opt-btn').forEach(btn => {
+                btn.classList.remove('border-amber-400', 'bg-amber-500/20', 'shadow-lg');
+                if(btn.dataset.house === houseName) {
+                    btn.classList.add('border-amber-400', 'bg-amber-500/20', 'shadow-lg');
+                }
+            });
+            playMagicalChime();
+        }
+
+        function setDifficulty(diff) {
+            difficulty = diff;
+            const stdBtn = document.getElementById('diff-standard');
+            const legBtn = document.getElementById('diff-legendary');
+            if (diff === 'standard') {
+                stdBtn.className = "p-3 rounded-xl border-2 border-amber-700 bg-amber-500/20 text-amber-950 font-bold text-sm transition";
+                legBtn.className = "p-3 rounded-xl border-2 border-amber-900/30 bg-amber-900/10 text-amber-950 font-bold text-sm transition";
+            } else {
+                stdBtn.className = "p-3 rounded-xl border-2 border-amber-900/30 bg-amber-900/10 text-amber-950 font-bold text-sm transition";
+                legBtn.className = "p-3 rounded-xl border-2 border-amber-700 bg-amber-500/20 text-amber-950 font-bold text-sm transition";
+            }
+            playMagicalChime();
+        }
+
+        function startGame() {
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            
+            // Pick a random character
+            const randomIndex = Math.floor(Math.random() * charactersDatabase.length);
+            activeCharacter = charactersDatabase[randomIndex];
+            currentClueIndex = 0;
+            guessesRemaining = 3;
+            gameActive = true;
+
+            updateGameUI();
+            playMagicalChime();
+        }
+
+        function updateGameUI() {
+            // Clue counters
+            document.getElementById('clue-counter').textContent = `${currentClueIndex + 1} / 10`;
+            document.getElementById('current-clue-num').textContent = currentClueIndex + 1;
+            document.getElementById('target-category').textContent = activeCharacter.category;
+            document.getElementById('clue-text').textContent = activeCharacter.clues[currentClueIndex];
+
+            // Prev/Next buttons
+            document.getElementById('btn-prev-clue').disabled = (currentClueIndex === 0);
+            const nextBtn = document.getElementById('btn-next-clue');
+            if (currentClueIndex >= activeCharacter.clues.length - 1) {
+                nextBtn.innerHTML = `Max Clues Reached`;
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.innerHTML = `Next Clue <i class="fa-solid fa-chevron-right ml-1"></i>`;
+                nextBtn.disabled = false;
+            }
+
+            // Guesses dots
+            const dotsContainer = document.getElementById('guesses-dots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = `w-4 h-4 rounded-full border border-amber-800 ${i < guessesRemaining ? 'bg-amber-600' : 'bg-amber-900/20'}`;
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function nextClue() {
+            if (currentClueIndex < activeCharacter.clues.length - 1) {
+                currentClueIndex++;
+                updateGameUI();
+                playMagicalChime();
+            }
+        }
+
+        function prevClue() {
+            if (currentClueIndex > 0) {
+                currentClueIndex--;
+                updateGameUI();
+                playMagicalChime();
+            }
+        }
+
+        function filterCharacterSuggestions(query) {
+            const box = document.getElementById('suggestions-box');
+            if (!query.trim()) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const matches = charactersDatabase.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+            if (matches.length === 0) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            box.innerHTML = '';
+            matches.forEach(m => {
+                const item = document.createElement('div');
+                item.className = "px-4 py-2 hover:bg-amber-200 cursor-pointer font-cinzel text-xs font-bold text-amber-950 border-b border-amber-800/10 last:border-b-0";
+                item.textContent = m.name;
+                item.onclick = () => {
+                    document.getElementById('character-input').value = m.name;
+                    box.classList.add('hidden');
+                };
+                box.appendChild(item);
+            });
+            box.classList.remove('hidden');
+        }
+
+        function handleInputKey(e) {
+            if (e.key === 'Enter') {
+                submitGuess();
+            }
+        }
+
+        function submitGuess() {
+            if (!gameActive) return;
+            const inputVal = document.getElementById('character-input').value.trim();
+            if (!inputVal) return;
+
+            document.getElementById('suggestions-box').classList.add('hidden');
+
+            const isCorrect = inputVal.toLowerCase() === activeCharacter.name.toLowerCase();
+
+            if (isCorrect) {
+                triggerVictory();
+            } else {
+                guessesRemaining--;
+                updateGameUI();
+                if (guessesRemaining <= 0) {
+                    triggerDefeat();
+                } else {
+                    showFeedbackToast(`Incorrect! ${guessesRemaining} guesses remaining.`);
+                }
+            }
+        }
+
+        function showFeedbackToast(msg) {
+            const input = document.getElementById('character-input');
+            input.classList.add('border-red-600');
+            setTimeout(() => input.classList.remove('border-red-600'), 800);
+            playMagicalChime();
+        }
+
+        function triggerVictory() {
+            gameActive = false;
+            gamesWonCount++;
+            const pointsEarned = Math.max(10, 35 - (currentClueIndex * 2));
+            housePoints += pointsEarned;
+            document.getElementById('house-points-val').textContent = housePoints;
+
+            // Update modal UI
+            document.getElementById('result-icon-container').className = "w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-500 mx-auto flex items-center justify-center text-amber-700 text-3xl mb-4 shadow-lg";
+            document.getElementById('result-icon').className = "fa-solid fa-wand-magic-sparkles text-amber-500";
+            document.getElementById('result-title').textContent = "SPELL SUCCESS!";
+            document.getElementById('result-subtitle').textContent = `Magnificent deduction! You mastered ${activeCharacter.name}.`;
+            document.getElementById('result-char-name').textContent = activeCharacter.name;
+            document.getElementById('result-char-details').textContent = activeCharacter.details;
+            document.getElementById('result-points-val').textContent = `+${pointsEarned} PTS`;
+            document.getElementById('result-clues-val').textContent = `${currentClueIndex + 1} / 10`;
+
+            document.getElementById('screen-result').classList.remove('hidden');
+            checkAchievements();
+            playMagicalChime();
+        }
+
+        function triggerDefeat() {
+            gameActive = false;
+            document.getElementById('result-icon-container').className = "w-20 h-20 rounded-full bg-red-900/20 border-2 border-red-700 mx-auto flex items-center justify-center text-red-700 text-3xl mb-4 shadow-lg";
+            document.getElementById('result-icon').className = "fa-solid fa-triangle-exclamation text-red-500";
+            document.getElementById('result-title').textContent = "SPELL FIZZLED!";
+            document.getElementById('result-subtitle').textContent = `Out of guesses! The correct wizard was ${activeCharacter.name}.`;
+            document.getElementById('result-char-name').textContent = activeCharacter.name;
+            document.getElementById('result-char-details').textContent = activeCharacter.details;
+            document.getElementById('result-points-val').textContent = `0 PTS`;
+            document.getElementById('result-clues-val').textContent = `${currentClueIndex + 1} / 10`;
+
+            document.getElementById('screen-result').classList.remove('hidden');
+            playMagicalChime();
+        }
+
+        function nextRound() {
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('character-input').value = '';
+            startGame();
+        }
+
+        function quitToMenu() {
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-menu').classList.remove('hidden');
+            document.getElementById('character-input').value = '';
+        }
+
+        function openAskDumbledore() {
+            const quotes = [
+                "“It is our choices, Harry, that show what we truly are, far more than our abilities.”",
+                "“Words are, in my not-so-humble opinion, our most inexhaustible source of magic.”",
+                "“Understanding is the first step to acceptance, and only acceptance can there be recovery.”",
+                "“Curiosity is not a sin, but we should exercise caution with our curiosity...”"
+            ];
+            const randQ = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('dumbledore-quote').textContent = randQ;
+            document.getElementById('modal-dumbledore').classList.remove('hidden');
+            playMagicalChime();
+        }
+
+        function closeAskDumbledore() {
+            document.getElementById('modal-dumbledore').classList.add('hidden');
+        }
+
+        function openAchievementsModal() {
+            const listContainer = document.getElementById('achievements-list');
+            listContainer.innerHTML = '';
+
+            const achievements = [
+                { title: "First Spell Cast", desc: "Win your first character guessing round.", unlocked: gamesWonCount >= 1 },
+                { title: "Master Deductor", desc: "Win 3 rounds in the Wizarding World.", unlocked: gamesWonCount >= 3 },
+                { title: "Potions Prodigy", desc: "Accumulate over 100 House Points.", unlocked: housePoints >= 100 }
+            ];
+
+            achievements.forEach(ach => {
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-xl border flex items-center justify-between ${ach.unlocked ? 'bg-amber-500/20 border-amber-600' : 'bg-amber-900/5 border-amber-900/20 opacity-60'}`;
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-900/20 flex items-center justify-center text-amber-800">
+                            <i class="fa-solid ${ach.unlocked ? 'fa-trophy text-amber-500' : 'fa-lock'}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-xs text-amber-950">${ach.title}</div>
+                            <div class="text-[10px] text-amber-900/70">${ach.desc}</div>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold ${ach.unlocked ? 'text-amber-700' : 'text-amber-950/40'}">${ach.unlocked ? 'UNLOCKED' : 'LOCKED'}</span>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            document.getElementById('modal-achievements').classList.remove('hidden');
+            playMagicalChime();
+        }
+
+        function closeAchievementsModal() {
+            document.getElementById('modal-achievements').classList.add('hidden');
+        }
+
+        function checkAchievements() {
+            // Trigger auto checks
+        }
+
+        // Initialize sparkles on load
+        window.onload = function() {
+            initStars();
+        };
+    </script>
+</body>
+</html>
